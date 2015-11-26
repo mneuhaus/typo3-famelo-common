@@ -1,7 +1,9 @@
 {
+    "name": "famelo/famelo-common",
+    "type": "typo3-cms-extension",
     "autoload": {
         "psr-4": {
-            "Famelo\\FameloCommon\\": "Classes\/\\"
+            "Famelo\\FameloCommon\\": "Classes"
         }
     }
 }
