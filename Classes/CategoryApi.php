@@ -43,6 +43,12 @@ class CategoryApi {
 		return $categories;
 	}
 
+	public static function expandCategoryList($categoryUids) {
+		$keys = array_keys(static::getChildCategories($categoryUids));
+		$keys[] = $categoryUids;
+		return implode(',', $keys);
+	}
+
 	public static function getChildCategories($parentUids, $children = array()) {
 		$rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
 			'*',
@@ -56,7 +62,7 @@ class CategoryApi {
 		);
 		$children = array_replace($children, (array) $rows);
 		if (count($rows) > 0) {
-			static::getChildCategories(implode(',', array_values($rows)), $children);
+			static::getChildCategories(implode(',', array_keys($rows)), $children);
 		}
 		return $children;
 	}
@@ -81,6 +87,34 @@ class CategoryApi {
 				AND tablenames = "' . $tablenames . '"
 				AND uid_foreign IN (' . $uids . ') ' .
 				$GLOBALS['TSFE']->cObj->enableFields('sys_category')
+		);
+	}
+
+	public function getItemsByCategories($categories, $tableName, $field = NULL, $limit = 10, $offset = 0) {
+		if (is_array($categories)) {
+			foreach ($categories as $key => $category) {
+				if (is_array($category)) {
+					$categories[$key] = $category['uid'];
+				}
+			}
+			$categories = implode(',', $categories);
+		}
+		$query = $tableName . '.uid = sys_category_record_mm.uid_foreign
+		AND tablenames = "' . $tableName . '"
+		AND uid_local IN (' . $categories . ') ' .
+		$GLOBALS['TSFE']->cObj->enableFields($tableName);
+
+		if ($field !== NULL) {
+			$query .= ' AND fieldname = "' . $field . '"';
+		}
+
+		return $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+			$tableName . '.*',
+			$tableName . ', sys_category_record_mm',
+			$query,
+			$tableName . '.uid',
+			'',
+			$offset . ',' . $limit
 		);
 	}
 

@@ -323,6 +323,7 @@ class String {
 
 		// Replace non letter or digits by -
 		$value = preg_replace('~[^\\pL\d]+~u', '-', $value);
+		$value = str_replace('.', '', $value);
 
 		// Trim incl. dashes
 		$value = trim($value, '-');
