@@ -5,5 +5,8 @@
         "psr-4": {
             "Famelo\\FameloCommon\\": "Classes"
         }
+    },
+    "require": {
+        "mpdf/mpdf": "*"
     }
 }
