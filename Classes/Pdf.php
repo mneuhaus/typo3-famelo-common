@@ -25,8 +25,6 @@ namespace Famelo\FameloCommon;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-require_once(PATH_typo3conf . 'ext/melos_rtb/Resources/Private/PHP/mpdf/mpdf.php');
-
 /**
  *
  *
@@ -83,7 +81,7 @@ class Pdf {
 		'marginFooter' => 0
 	);
 
-	public function __construct($document, $request = NULL) {
+	public function __construct($document, $request = NULL, $view = NULL) {
 		$this->view = new \TYPO3\CMS\Fluid\View\StandaloneView();
 		if ($request !== NULL) {
 			$this->view->setRequest($request);
@@ -147,7 +145,12 @@ class Pdf {
 		$pdf = $this->createMpdfInstance();
         $pdf->WriteHTML($content);
         $pdf->SetHTMLFooter($htmlFooter);
-        $output = $pdf->Output($filename, 'd');
+        $output = $pdf->Output($filename, 'S');
+		header('Content-Description: File Transfer');
+		header('Cache-Control: public, must-revalidate, max-age=0');
+		header('Content-disposition: attachment; filename="'.basename($filename).'"');
+		echo $data;
+		exit();
 		error_reporting($previousErrorReporting);
 	}
 
