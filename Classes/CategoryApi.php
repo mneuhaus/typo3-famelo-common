@@ -118,4 +118,38 @@ class CategoryApi {
 		);
 	}
 
+	public static function permutate() {
+		$groups = array();
+		foreach (func_get_args() as $argument) {
+			if (is_string($argument)) {
+				$argument = explode(',', $argument);
+			}
+			$groups[] = $argument;
+		}
+
+		$permutations = [];
+		$iteration = 0;
+
+		while (1) {
+			$num = $iteration++;
+			$pick = array();
+
+			foreach($groups as $group) {
+				$r = $num % count($group);
+				$num = ($num - $r) / count($group);
+				$pick[] = $group[$r];
+			}
+
+			if ($num > 0) break;
+
+			$permutations[] = $pick;
+		}
+
+		$categories = array();
+		foreach ($permutations as $key => $value) {
+			$categories[] = '(' . implode(' AND ', $value) . ')';
+		}
+		return implode(' OR ', $categories);
+	}
+
 }
