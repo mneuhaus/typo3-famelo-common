@@ -25,70 +25,91 @@ namespace Famelo\FameloCommon;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-/**
- *
- *
- * @license http://www.gnu.org/licenses/gpl.html GNU General Public License, version 3 or later
- *
- */
-class Pdf {
-	/*
-	 * @var string
-	 */
-	protected $templatePath = '@package/Resources/Private/Pdfs/@document.html';
+ use Famelo\PDF\Generator\PdfGeneratorInterface;
 
-	/*
-	 * @var string
-	 */
-	protected $layoutRootPath = '@package/Resources/Private/Layouts/';
 
-	/*
-	 * @var string
-	 */
-	protected $partialRootPath = '@package/Resources/Private/Partials/';
+ /**
+  */
+ class Pdf {
+ 	/*
+ 	 * @var string
+ 	 */
+ 	protected $templatePath = '@package/Resources/Private/Pdfs/@document.html';
 
-	/**
-	 * @var string
-	 */
-	protected $document = 'Standard';
+ 	/*
+ 	 * @var string
+ 	 */
+ 	protected $layoutRootPath = '@package/Resources/Private/Layouts/';
 
-	/**
-	 * @var string
-	 */
-	protected $package = NULL;
+ 	/*
+ 	 * @var string
+ 	 */
+ 	protected $partialRootPath = '@package/Resources/Private/Partials/';
 
-	/**
-	 * The view
-	 *
-	 * @var \TYPO3\CMS\Fluid\View\StandaloneView
-	 */
-	protected $view;
+ 	/**
+ 	 * @var string
+ 	 */
+ 	protected $document = 'Standard';
 
-	/**
-	 * @var string
-	 */
-	protected $options = array(
-		'encoding' => '',
-		'format' => 'A4',
-		'orientation' => 'P',
-		'fontSize' => 0,
-		'font' => '',
-		'marginLeft' => 0,
-		'marginRight' => 0,
-		'marginTop' => 0,
-		'marginBottom' => 0,
-		'marginHeader' => 0,
-		'marginFooter' => 0
-	);
+ 	/**
+ 	 * @var string
+ 	 */
+ 	protected $package = NULL;
 
-	public function __construct($document, $request = NULL, $view = NULL) {
+ 	/**
+ 	 * The view
+ 	 *
+ 	 * @var \TYPO3\CMS\Fluid\View\StandaloneView
+ 	 */
+ 	protected $view;
+
+ 	/**
+ 	 * @var string
+ 	 */
+ 	protected $format;
+
+ 	/**
+ 	 * @var array
+ 	 */
+ 	protected $options = array();
+
+ 	/**
+ 	 *
+ 	 * @var string
+ 	 */
+ 	protected $defaultGenerator;
+
+ 	/**
+ 	 *
+ 	 * @var array
+ 	 */
+ 	protected $defaultGeneratorOptions;
+
+ 	/**
+ 	 * @var PdfGeneratorInterface
+ 	 */
+ 	protected $generator;
+
+ 	/**
+ 	 * @var string
+ 	 */
+ 	protected $templateSource;
+
+	public function __construct($document, $format = 'A4', $request = NULL, $view = NULL) {
 		$this->view = new \TYPO3\CMS\Fluid\View\StandaloneView();
 		if ($request !== NULL) {
 			$this->view->setRequest($request);
-			// $this->view->getRequest()->setControllerExtensionName($this->request->getControllerExtensionName());
-			// $this->view->getRequest()->setPluginName($this->request->getPluginName());
+		}
+		if (!isset($GLOBALS['TYPO3_CONF_VARS']['SYS']['pdfGenerator'])) {
+			throw new \Exception('you need to add a generator to your Localconfiguration!');
 		}
 
+		$this->defaultGenerator = $GLOBALS['TYPO3_CONF_VARS']['SYS']['pdfGenerator'];
+		if (isset($GLOBALS['TYPO3_CONF_VARS']['SYS']['pdfGeneratorOptions'])) {
+			$this->defaultGeneratorOptions = $GLOBALS['TYPO3_CONF_VARS']['SYS']['pdfGeneratorOptions'];
+		}
+
+		$this->format = $format;
 		$this->setDocument($document);
 		$this->templatePath = PATH_typo3conf . 'ext/' . $this->templatePath;
 		$this->layoutRootPath = PATH_typo3conf . 'ext/' . $this->layoutRootPath;
@@ -106,9 +127,25 @@ class Pdf {
 		return $this;
 	}
 
+ 	public function setTemplateSource($templateSource) {
+ 		$this->templateSource = $templateSource;
+ 	}
 
+ 	public function setFormat($format) {
+ 		$this->format = $format;
+ 	}
 
-	public function render() {
+ 	public function getGenerator() {
+ 		if (!$this->generator instanceof PdfGeneratorInterface) {
+ 			$this->generator = new $this->defaultGenerator($this->defaultGeneratorOptions, $this->view);
+ 		}
+ 		foreach ($this->options as $name => $value) {
+ 			$this->generator->setOption($name, $value);
+ 		}
+ 		return $this->generator;
+ 	}
+
+ 	public function render() {
 		$replacements = array(
 			'@package' => $this->package,
 			'@document' => $this->document
@@ -124,72 +161,59 @@ class Pdf {
 
 		$this->view->setFormat('html');
 
-		// $this->view->getRequest()->setControllerPackageKey($this->package);
-
 		return $this->view->render();
-	}
+ 	}
 
-	public function send($filename = NULL, $htmlFooter = NULL) {
-		$content = $this->render();
-		$previousErrorReporting = error_reporting(0);
-        $pdf = $this->createMpdfInstance();
-        $pdf->WriteHTML($content);
-        $pdf->SetHTMLFooter($htmlFooter);
-        $output = $pdf->Output($filename, 'i');
-		error_reporting($previousErrorReporting);
-	}
+ 	public function setOptionsByViewHelper($generator) {
+ 		$viewHelperVariableContainer = $this->view->getViewHelperVariableContainer();
+ 		if ($viewHelperVariableContainer->exists('Famelo\Pdf\ViewHelpers\HeaderViewHelper', 'header')) {
+ 			$header = $viewHelperVariableContainer->get('Famelo\Pdf\ViewHelpers\HeaderViewHelper', 'header');
+ 			$generator->setHeader($header);
+ 		}
+ 		$viewHelperVariableContainer = $this->view->getViewHelperVariableContainer();
+ 		if ($viewHelperVariableContainer->exists('Famelo\Pdf\ViewHelpers\FooterViewHelper', 'footer')) {
+ 			$footer = $viewHelperVariableContainer->get('Famelo\Pdf\ViewHelpers\FooterViewHelper', 'footer');
+ 			$generator->setFooter($footer);
+ 		}
+ 	}
 
-	public function download($filename = NULL, $htmlFooter = NULL) {
-		$content = $this->render();
-		$previousErrorReporting = error_reporting(0);
-		$pdf = $this->createMpdfInstance();
-        $pdf->WriteHTML($content);
-        $pdf->SetHTMLFooter($htmlFooter);
-        $output = $pdf->Output($filename, 'S');
-		header('Content-Description: File Transfer');
-		header('Cache-Control: public, must-revalidate, max-age=0');
-		header('Content-disposition: attachment; filename="'.basename($filename).'"');
-		echo $data;
-		exit();
-		error_reporting($previousErrorReporting);
-	}
+ 	public function setOption($name, $value) {
+ 		$this->options[$name] = $value;
+ 	}
 
-	public function save($filename, $htmlFooter = NULL) {
-		$content = $this->render();
-		$previousErrorReporting = error_reporting(0);
-		$pdf = $this->createMpdfInstance();
-        $pdf->WriteHTML($content);
-        $pdf->SetHTMLFooter($htmlFooter);
-        $pdf->Output($filename, 'f');
-		error_reporting($previousErrorReporting);
-	}
+ 	public function send($filename = NULL) {
+ 		$content = $this->render();
+ 		$generator = $this->getGenerator();
+ 	// 	$this->setOptionsByViewHelper($generator);
+ 		$generator->setFormat($this->format);
+ 		$generator->sendPdf($content, $filename);
+ 	}
 
-	public function createMpdfInstance() {
-		return new \mPDF(
-			$this->options['encoding'],
-			$this->options['format'],
-			$this->options['fontSize'],
-			$this->options['font'],
-			$this->options['marginLeft'],
-			$this->options['marginRight'],
-			$this->options['marginTop'],
-			$this->options['marginBottom'],
-			$this->options['marginHeader'],
-			$this->options['marginFooter'],
-			$this->options['orientation']
-		);
-	}
+ 	public function download($filename = NULL) {
+ 		$content = $this->render();
+ 		$generator = $this->getGenerator();
+ 	// 	$this->setOptionsByViewHelper($generator);
+ 		$generator->setFormat($this->format);
+ 		$generator->downloadPdf($content, $filename);
+ 	}
 
-	public function assign($key, $value) {
-		$this->view->assign($key, $value);
-		return $this;
-	}
+ 	public function save($filename) {
+ 		$content = $this->render();
+ 		$generator = $this->getGenerator();
+ 	// 	$this->setOptionsByViewHelper($generator);
+ 		$generator->setFormat($this->format);
+ 		$generator->savePdf($content, $filename);
+ 	}
 
-	public function assignMultiple(array $values) {
-		foreach ($values as $key => $value) {
-			$this->assign($key, $value);
-		}
-		return $this;
-	}
+ 	public function assign($key, $value) {
+ 		$this->view->assign($key, $value);
+ 		return $this;
+ 	}
+
+ 	public function assignMultiple(array $values) {
+ 		foreach ($values as $key => $value) {
+ 			$this->assign($key, $value);
+ 		}
+ 		return $this;
+ 	}
 }
-?>
