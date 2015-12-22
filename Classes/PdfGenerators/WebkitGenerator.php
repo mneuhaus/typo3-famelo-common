@@ -42,6 +42,12 @@ class WebkitGenerator implements PdfGeneratorInterface {
 			throw new \Exception('You need to configure you\'r wkhtmltopdf binary in "Famelo.Pdf.DefaultGeneratorOptions.Binary".');
 		}
 		$this->snappyPdf = new \Knp\Snappy\Pdf($options['binary']);
+
+		foreach ($this->options as $key => $value) {
+			if (isset($options[$key])) {
+				$this->options[$key] = $options[$key];
+			}
+		}
 	}
 
 	public function setFormat($format) {
@@ -67,17 +73,17 @@ class WebkitGenerator implements PdfGeneratorInterface {
 	public function sendPdf($content, $filename = NULL) {
 		header('Content-Type: application/pdf');
 		header('Content-Disposition: inline; filename="' . $filename . '"');
-		echo $this->snappyPdf->getOutputFromHtml(utf8_decode($content), $this->options);
+		echo $this->snappyPdf->getOutputFromHtml($content, $this->options);
 	}
 
 	public function downloadPdf($content, $filename = NULL) {
 		header('Content-Type: application/pdf');
 		header('Content-Disposition: attachment; filename="' . $filename . '"');
-		echo $this->snappyPdf->getOutputFromHtml(utf8_decode($content), $this->options);
+		echo $this->snappyPdf->getOutputFromHtml($content, $this->options);
 	}
 
 	public function savePdf($content, $filename) {
-		$this->snappyPdf->generateFromHtml(utf8_decode($content), $filename, $this->options);
+		$this->snappyPdf->generateFromHtml($content, $filename, $this->options);
 	}
 }
 ?>
