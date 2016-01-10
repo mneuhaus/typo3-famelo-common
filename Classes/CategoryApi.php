@@ -62,7 +62,7 @@ class CategoryApi {
 		);
 		$children = array_replace($children, (array) $rows);
 		if (count($rows) > 0) {
-			static::getChildCategories(implode(',', array_keys($rows)), $children);
+			$children = static::getChildCategories(implode(',', array_keys($rows)), $children);
 		}
 		return $children;
 	}
