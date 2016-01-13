@@ -23,8 +23,8 @@ class WebkitGenerator implements PdfGeneratorInterface {
 	 * @var string
 	 */
 	protected $options = array(
-		'margin-bottom' => 0,
-		'margin-top' => 0,
+		'margin-bottom' => '2cm',
+		'margin-top' => '5cm',
 		'margin-left' => 0,
 		'margin-right' => 0
 	);

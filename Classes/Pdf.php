@@ -25,7 +25,9 @@ namespace Famelo\FameloCommon;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
- use Famelo\PDF\Generator\PdfGeneratorInterface;
+use Famelo\PDF\Generator\PdfGeneratorInterface;
+use Famelo\FameloCommon\ViewHelpers\Pdf\HeaderViewHelper;
+use Famelo\FameloCommon\ViewHelpers\Pdf\FooterViewHelper;
 
 
  /**
@@ -96,7 +98,7 @@ namespace Famelo\FameloCommon;
  	protected $templateSource;
 
 	public function __construct($document, $format = 'A4', $request = NULL, $view = NULL) {
-		$this->view = new \TYPO3\CMS\Fluid\View\StandaloneView();
+		$this->view = new \Famelo\FameloCommon\View\StandaloneView();
 		if ($request !== NULL) {
 			$this->view->setRequest($request);
 		}
@@ -166,13 +168,13 @@ namespace Famelo\FameloCommon;
 
  	public function setOptionsByViewHelper($generator) {
  		$viewHelperVariableContainer = $this->view->getViewHelperVariableContainer();
- 		if ($viewHelperVariableContainer->exists('Famelo\Pdf\ViewHelpers\HeaderViewHelper', 'header')) {
- 			$header = $viewHelperVariableContainer->get('Famelo\Pdf\ViewHelpers\HeaderViewHelper', 'header');
+ 		if ($viewHelperVariableContainer->exists(HeaderViewHelper::class, 'header')) {
+ 			$header = $viewHelperVariableContainer->get(HeaderViewHelper::class, 'header');
  			$generator->setHeader($header);
  		}
  		$viewHelperVariableContainer = $this->view->getViewHelperVariableContainer();
- 		if ($viewHelperVariableContainer->exists('Famelo\Pdf\ViewHelpers\FooterViewHelper', 'footer')) {
- 			$footer = $viewHelperVariableContainer->get('Famelo\Pdf\ViewHelpers\FooterViewHelper', 'footer');
+ 		if ($viewHelperVariableContainer->exists(FooterViewHelper::class, 'footer')) {
+ 			$footer = $viewHelperVariableContainer->get(FooterViewHelper::class, 'footer');
  			$generator->setFooter($footer);
  		}
  	}
@@ -184,7 +186,7 @@ namespace Famelo\FameloCommon;
  	public function send($filename = NULL) {
  		$content = $this->render();
  		$generator = $this->getGenerator();
- 	// 	$this->setOptionsByViewHelper($generator);
+ 		$this->setOptionsByViewHelper($generator);
  		$generator->setFormat($this->format);
  		$generator->sendPdf($content, $filename);
  	}
@@ -192,7 +194,7 @@ namespace Famelo\FameloCommon;
  	public function download($filename = NULL) {
  		$content = $this->render();
  		$generator = $this->getGenerator();
- 	// 	$this->setOptionsByViewHelper($generator);
+ 		$this->setOptionsByViewHelper($generator);
  		$generator->setFormat($this->format);
  		$generator->downloadPdf($content, $filename);
  	}
@@ -200,7 +202,7 @@ namespace Famelo\FameloCommon;
  	public function save($filename) {
  		$content = $this->render();
  		$generator = $this->getGenerator();
- 	// 	$this->setOptionsByViewHelper($generator);
+ 		$this->setOptionsByViewHelper($generator);
  		$generator->setFormat($this->format);
  		$generator->savePdf($content, $filename);
  	}
