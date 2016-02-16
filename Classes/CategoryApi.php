@@ -53,7 +53,7 @@ class CategoryApi {
 		$rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
 			'*',
 			'sys_category',
-			'parent IN (' . $parentUids . ')' .
+			'parent IN (' . $parentUids . ') AND sys_language_uid = 0' .
 			$GLOBALS['TSFE']->cObj->enableFields('sys_category'),
 			'',
 			'',
