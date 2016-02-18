@@ -31,11 +31,11 @@ namespace Famelo\FameloCommon;
  */
 class CategoryApi {
 
-	public static function getCategories($categoryUids, $recursive = FALSE) {
+	public static function getCategories($categoryUids, $includeChildren = FALSE) {
 		$categories = array();
 		foreach (explode(',', $categoryUids) as $baseCategory) {
 			$category = static::getCategory($baseCategory);
-			if ($recursive) {
+			if ($includeChildren) {
 				$category['children'] = static::getChildCategories($baseCategory);
 			}
 			$categories[] = $category;
@@ -61,9 +61,9 @@ class CategoryApi {
 			'uid'
 		);
 		$children = array_replace($children, (array) $rows);
-		if (count($rows) > 0) {
-			$children = static::getChildCategories(implode(',', array_keys($rows)), $children);
-		}
+//		if (count($rows) > 0) {
+//			$children = static::getChildCategories(implode(',', array_keys($rows)), $children);
+//		}
 		return $children;
 	}
 
