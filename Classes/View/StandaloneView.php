@@ -26,4 +26,14 @@ class StandaloneView extends \TYPO3\CMS\Fluid\View\StandaloneView {
 	public function getViewHelperVariableContainer() {
 		return $this->baseRenderingContext->getViewHelperVariableContainer();
 	}
+
+	/**
+     * Returns the current request object
+     *
+     * @return WebRequest
+     */
+    public function setRequest($request)
+    {
+        return $this->controllerContext->setRequest($request);
+    }
 }
