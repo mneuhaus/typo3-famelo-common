@@ -4,7 +4,7 @@ namespace Famelo\FameloCommon;
 /**
  * Utility for String conversions
  */
-class String {
+class StringUtility {
 	/**
 	 * @var string
 	 */

@@ -17,10 +17,10 @@ class SlugifyViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBase
 	public function render($value = NULL, $phoenticReplacements = array(), $group = NULL, $as = 'slug') {
 		if ($value === NULL) {
 			$value = $this->renderChildren();
-			return \Famelo\FameloCommon\String::slugify($value, $phoenticReplacements, $group);
+			return \Famelo\FameloCommon\StringUtility::slugify($value, $phoenticReplacements, $group);
 		}
 
-		$value = \Famelo\FameloCommon\String::slugify($value, $phoenticReplacements, $group);
+		$value = \Famelo\FameloCommon\StringUtility::slugify($value, $phoenticReplacements, $group);
 
 		$this->templateVariableContainer->add($as, $value);
 		$output = $this->renderChildren();
