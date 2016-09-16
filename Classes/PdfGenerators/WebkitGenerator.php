@@ -66,6 +66,10 @@ class WebkitGenerator implements PdfGeneratorInterface {
 		$this->options['footer-html'] = $content;
 	}
 
+	public function setCover($content) {
+		$this->options['cover'] = $content;
+	}
+
 	public function setOption($name, $value) {
 		$this->options[$name] = $value;
 	}
@@ -86,4 +90,3 @@ class WebkitGenerator implements PdfGeneratorInterface {
 		$this->snappyPdf->generateFromHtml($content, $filename, $this->options);
 	}
 }
-?>

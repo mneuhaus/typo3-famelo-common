@@ -25,6 +25,7 @@ namespace Famelo\FameloCommon;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use Famelo\FameloCommon\ViewHelpers\Pdf\CoverViewHelper;
 use Famelo\PDF\Generator\PdfGeneratorInterface;
 use Famelo\FameloCommon\ViewHelpers\Pdf\HeaderViewHelper;
 use Famelo\FameloCommon\ViewHelpers\Pdf\FooterViewHelper;
@@ -172,11 +173,16 @@ use Famelo\FameloCommon\ViewHelpers\Pdf\FooterViewHelper;
  			$header = $viewHelperVariableContainer->get(HeaderViewHelper::class, 'header');
  			$generator->setHeader($header);
  		}
- 		$viewHelperVariableContainer = $this->view->getViewHelperVariableContainer();
- 		if ($viewHelperVariableContainer->exists(FooterViewHelper::class, 'footer')) {
- 			$footer = $viewHelperVariableContainer->get(FooterViewHelper::class, 'footer');
- 			$generator->setFooter($footer);
- 		}
+        $viewHelperVariableContainer = $this->view->getViewHelperVariableContainer();
+        if ($viewHelperVariableContainer->exists(FooterViewHelper::class, 'footer')) {
+            $footer = $viewHelperVariableContainer->get(FooterViewHelper::class, 'footer');
+            $generator->setFooter($footer);
+        }
+        $viewHelperVariableContainer = $this->view->getViewHelperVariableContainer();
+        if ($viewHelperVariableContainer->exists(CoverViewHelper::class, 'cover')) {
+            $footer = $viewHelperVariableContainer->get(CoverViewHelper::class, 'cover');
+            $generator->setCover($footer);
+        }
  	}
 
  	public function setOption($name, $value) {
